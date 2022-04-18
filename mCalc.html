@@ -1,0 +1,321 @@
+<!-- https://htmlpreview.github.io/?https://github.com/lastramses/html/blob/master/mCalc.html -->
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+	<title>Mortgage Calculator</title>
+	<script>
+		function updateCalc(){
+		
+			for (iMort=0;iMort<3;++iMort){
+				var nrHouseVal = document.getElementById("nrHouseVal_" + String(iMort)).value;
+				var nrDownPayment = document.getElementById("nrDownPayment_" + String(iMort)).value;
+				var pctMortgageRate = document.getElementById("pctMortgageRate_" + String(iMort)).value/100;
+				var nrExtraPayment = document.getElementById("nrExtraPayment_" + String(iMort)).value*1
+				var TiMortgageDuration = document.getElementById("TiMortgageDuration_" + String(iMort)).value;
+				
+				document.getElementById("pctDown_" + String(iMort)).innerHTML = Math.floor(nrDownPayment*100/nrHouseVal);
+				var nrLoanPrincipal = nrHouseVal - nrDownPayment;
+				document.getElementById("nrLoanPrincipal_" + String(iMort)).innerHTML = nrLoanPrincipal;
+				
+				var nrMonthlyPayment = nrLoanPrincipal*((pctMortgageRate/12)*Math.pow((1+pctMortgageRate/12),TiMortgageDuration))/(Math.pow(1+pctMortgageRate/12,TiMortgageDuration)-1);
+
+				document.getElementById("nrLoanInterest_" + String(iMort)).innerHTML = Math.floor(nrMonthlyPayment*TiMortgageDuration-nrLoanPrincipal);
+				document.getElementById("nrMonthlyPayment_" + String(iMort)).innerHTML = Math.floor(nrMonthlyPayment);
+				document.getElementById("nrMonthlyPaymentWExtra_" + String(iMort)).innerHTML = Math.floor(nrMonthlyPayment + nrExtraPayment);
+				
+				calculateMonthly(nrMonthlyPayment,iMort);
+			}
+		}
+		
+		function calculateMonthly(nrMonthlyPayment,iMort){
+			
+			var pctMortgageRate = document.getElementById("pctMortgageRate_" + String(iMort)).value/100;
+			var nrExtraPayment = document.getElementById("nrExtraPayment_" + String(iMort)).value * 1;
+			var tableData = document.getElementById("idMortMonthly_" + String(iMort));
+			var nrLoanPrincipal = document.getElementById("nrLoanPrincipal_" + String(iMort)).textContent;
+			var newcell = new Array(6);
+			var iMo=1;
+			var newRow = tableData.insertRow(iMo+1);
+			var iCol;
+			
+			for(iCol = 0; iCol < newcell.length; ++iCol){
+				newcell[iCol] = newRow.insertCell(iCol);
+			}
+			
+			var nrLoanBalance = nrLoanPrincipal;
+			var nrMoInt = nrLoanPrincipal*pctMortgageRate/12;
+			var nrMoPrinc = nrMonthlyPayment - nrMoInt + nrExtraPayment;
+			var nrTotInt = nrMoInt;
+			var nrTotPrinc = nrMonthlyPayment - nrMoInt;
+			newcell[0].innerHTML = iMo;
+			newcell[1].innerHTML = nrLoanBalance;
+			newcell[2].innerHTML = Math.floor(nrMoInt);
+			newcell[3].innerHTML = Math.floor(nrMoPrinc);
+			newcell[4].innerHTML = Math.floor(nrTotInt);
+			newcell[5].innerHTML = Math.floor(nrTotPrinc);
+			
+			while (nrLoanBalance>0){
+				++iMo;
+				nrLoanBalance = nrLoanPrincipal - nrTotPrinc; //new balance
+				if (nrLoanBalance>0){
+					newRow = tableData.insertRow(iMo+1);
+					for(iCol = 0; iCol < newcell.length; iCol++){
+						newcell[iCol] = newRow.insertCell(iCol);
+					}
+					nrMoInt = nrLoanBalance*pctMortgageRate/12;
+					nrMoPrinc = nrMonthlyPayment - nrMoInt + nrExtraPayment;
+					nrTotInt = nrTotInt + nrMoInt;
+					nrTotPrinc = nrTotPrinc + nrMoPrinc;
+					newcell[0].innerHTML = iMo;
+					newcell[1].innerHTML = Math.floor(nrLoanBalance); //principal balance
+					newcell[2].innerHTML = Math.floor(nrMoInt);//monthly interest
+					newcell[3].innerHTML = Math.floor(nrMoPrinc);//monthly principal
+					newcell[4].innerHTML = Math.floor(nrTotInt);//total interest paid
+					newcell[5].innerHTML = Math.floor(nrTotPrinc);//total principal paid
+				}
+			}
+			document.getElementById("nrLoanInterestPaid_" + String(iMort)).innerHTML = Math.floor(nrTotInt);
+			document.getElementById("tiLoanPayoffMo_" + String(iMort)).innerHTML = iMo;
+		}
+		
+	</script>
+</head>
+<body style = "background-color: #FBFBFF" onload="updateCalc()">
+	<div id="main">
+	<center>
+		<table border=0 id="idMortorg">
+		<!-- mort #0 -->
+		<tr>
+			<td>
+				<table border=1 id="idMortInfo_0">
+				<tr>
+					<td rowspan=2> #1</td>
+					<td style='font-weight: bold;'>House Value<br>$</td>
+					<td style='font-weight: bold;'>Down Payment<br>$</td>
+					<td style='font-weight: bold;'>Mortgage Rate</td>
+					
+					<td style='font-weight: bold;'>Extra payment<br>$/mo</td>
+					<td style='font-weight: bold;'>Duration<br>mo</td>
+					
+				</tr>
+				<tr>
+					<td><input type="number" style="width:60px" id="nrHouseVal_0" value="500000" step=50000 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="nrDownPayment_0" value="250000" step=50000 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="pctMortgageRate_0" value="4" step=0.1 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="nrExtraPayment_0" value="100" step=100 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="TiMortgageDuration_0" value="180" onchange="updateCalc()" required></td>
+				</tr>
+				</table>
+			</td>
+			<td>-></td>
+			<td>
+				<table border=1 id="idMortSummary">
+				<tr>
+					<td rowspan=2 style='font-weight: bold;'>% Down</td>
+					<td rowspan=2 style='font-weight: bold;'>Loan Principal<br>$</td>
+					<td colspan=2 style='font-weight: bold;'>Without extra payment</td>
+					<td colspan=3 style='font-weight: bold;'>With extra payment</td>
+				</tr>
+				<tr>
+					<td style='font-weight: bold;'>Loan Interest</td>
+					<td style='font-weight: bold;'>Payment $/mo</td>
+
+					<td style='font-weight: bold;'>Loan Interest</td>
+					<td style='font-weight: bold;'>Payment $/mo</td>
+					<td style='font-weight: bold;'>Loan payoff mo</td>
+				</tr>
+				<tr>
+					<td id="pctDown_0"></td>
+					<td id="nrLoanPrincipal_0"></td>
+					
+					<td id="nrLoanInterest_0"></td>
+					<td id="nrMonthlyPayment_0"></td>
+					
+					<td id="nrLoanInterestPaid_0"></td>
+					<td id="nrMonthlyPaymentWExtra_0"></td>
+					<td id="tiLoanPayoffMo_0"></td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		<!-- mort #1 -->
+		<tr>
+			<td>
+				<table border=1 id="idMortInfo_1">
+				<tr>
+					<td rowspan=2> #2</td>
+					<td style='font-weight: bold;'>House Value<br>$</td>
+					<td style='font-weight: bold;'>Down Payment<br>$</td>
+					<td style='font-weight: bold;'>Mortgage Rate</td>
+					
+					<td style='font-weight: bold;'>Extra payment<br>$/mo</td>
+					<td style='font-weight: bold;'>Duration<br>mo</td>
+					
+				</tr>
+				<tr>
+					<td><input type="number" style="width:60px" id="nrHouseVal_1" value="500000" step=50000 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="nrDownPayment_1" value="250000" step=50000 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="pctMortgageRate_1" value="4.5" step=0.1 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="nrExtraPayment_1" value="100" step=100 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="TiMortgageDuration_1" value="240" onchange="updateCalc()" required></td>
+				</tr>
+				</table>
+			</td>
+			<td>-></td>
+			<td>
+				<table border=1 id="idMortSummary">
+				<tr>
+					<td rowspan=2 style='font-weight: bold;'>% Down</td>
+					<td rowspan=2 style='font-weight: bold;'>Loan Principal<br>$</td>
+					<td colspan=2 style='font-weight: bold;'>Without extra payment</td>
+					<td colspan=3 style='font-weight: bold;'>With extra payment</td>
+				</tr>
+				<tr>
+					<td style='font-weight: bold;'>Loan Interest</td>
+					<td style='font-weight: bold;'>Payment $/mo</td>
+
+					<td style='font-weight: bold;'>Loan Interest</td>
+					<td style='font-weight: bold;'>Payment $/mo</td>
+					<td style='font-weight: bold;'>Loan payoff mo</td>
+				</tr>
+				<tr>
+					<td id="pctDown_1"></td>
+					<td id="nrLoanPrincipal_1"></td>
+					
+					<td id="nrLoanInterest_1"></td>
+					<td id="nrMonthlyPayment_1"></td>
+					
+					<td id="nrLoanInterestPaid_1"></td>
+					<td id="nrMonthlyPaymentWExtra_1"></td>
+					<td id="tiLoanPayoffMo_1"></td>
+				</tr>
+				</table>
+			</td>
+		</tr>
+		<!-- mort #2 -->
+		<tr>
+			<td>
+				<table border=1 id="idMortInfo_2">
+				<tr>
+					<td rowspan=2> #3</td>
+					<td style='font-weight: bold;'>House Value<br>$</td>
+					<td style='font-weight: bold;'>Down Payment<br>$</td>
+					<td style='font-weight: bold;'>Mortgage Rate</td>
+					
+					<td style='font-weight: bold;'>Extra payment<br>$/mo</td>
+					<td style='font-weight: bold;'>Duration<br>mo</td>
+					
+				</tr>
+				<tr>
+					<td><input type="number" style="width:60px" id="nrHouseVal_2" value="500000" step=50000 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="nrDownPayment_2" value="250000" step=50000 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="pctMortgageRate_2" value="4.9" step=0.1 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="nrExtraPayment_2" value="100" step=100 onchange="updateCalc()" required></td>
+					<td><input type="number" style="width:60px" id="TiMortgageDuration_2" value="360" onchange="updateCalc()" required></td>
+				</tr>
+				</table>
+			</td>
+			<td>-></td>
+			<td>
+				<table border=1 id="idMortSummary">
+					<tr>
+						<td rowspan=2 style='font-weight: bold;'>% Down</td>
+						<td rowspan=2 style='font-weight: bold;'>Loan Principal<br>$</td>
+						<td colspan=2 style='font-weight: bold;'>Without extra payment</td>
+						<td colspan=3 style='font-weight: bold;'>With extra payment</td>
+					</tr>
+					<tr>
+						<td style='font-weight: bold;'>Loan Interest</td>
+						<td style='font-weight: bold;'>Payment $/mo</td>
+
+						<td style='font-weight: bold;'>Loan Interest</td>
+						<td style='font-weight: bold;'>Payment $/mo</td>
+						<td style='font-weight: bold;'>Loan payoff mo</td>
+					</tr>
+					<tr>
+						<td id="pctDown_2"></td>
+						<td id="nrLoanPrincipal_2"></td>
+						
+						<td id="nrLoanInterest_2"></td>
+						<td id="nrMonthlyPayment_2"></td>
+						
+						<td id="nrLoanInterestPaid_2"></td>
+						<td id="nrMonthlyPaymentWExtra_2"></td>
+						<td id="tiLoanPayoffMo_2"></td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		</table>
+
+		<br><br>
+
+		<table border=0 id="idMortMonthly">
+			<tr>
+				<td>#1</td>
+				<td></td>
+				<td>#2</td>
+				<td></td>
+				<td>#3</td>
+			</tr>
+			<tr valign=top>
+				<td>
+					<table border=1 id="idMortMonthly_0">
+					<tr>
+						<td colspan=2></td>
+						<td colspan=2 style='font-weight: bold;'>Monthly</td>
+						<td colspan=2 style='font-weight: bold;'>Total</td>
+					</tr>
+					<tr>
+						<td style='font-weight: bold;'>Month</td>
+						<td style='font-weight: bold;'>Principal Balance</td>
+						<td style='font-weight: bold;'>Interest</td>
+						<td style='font-weight: bold;'>Principal</td>
+						<td style='font-weight: bold;'>Interest</td>
+						<td style='font-weight: bold;'>Month</td>
+					</tr>
+					</table>
+				</td>
+				<td>&nbsp;</td>
+				<td>
+					<table border=1 id="idMortMonthly_1">
+					<tr>
+						<td colspan=2></td>
+						<td colspan=2 style='font-weight: bold;'>Monthly</td>
+						<td colspan=2 style='font-weight: bold;'>Total</td>
+					</tr>
+					<tr>
+						<td style='font-weight: bold;'>Month</td>
+						<td style='font-weight: bold;'>Principal Balance</td>
+						<td style='font-weight: bold;'>Interest</td>
+						<td style='font-weight: bold;'>Principal</td>
+						<td style='font-weight: bold;'>Interest</td>
+						<td style='font-weight: bold;'>Month</td>
+					</tr>
+					</table>
+				</td>
+				<td>&nbsp;</td>
+				<td>
+					<table border=1 id="idMortMonthly_2">
+					<tr>
+						<td colspan=2></td>
+						<td colspan=2 style='font-weight: bold;'>Monthly</td>
+						<td colspan=2 style='font-weight: bold;'>Total</td>
+					</tr>
+					<tr>
+						<td style='font-weight: bold;'>Month</td>
+						<td style='font-weight: bold;'>Principal Balance</td>
+						<td style='font-weight: bold;'>Interest</td>
+						<td style='font-weight: bold;'>Principal</td>
+						<td style='font-weight: bold;'>Interest</td>
+						<td style='font-weight: bold;'>Month</td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</center>
+	</div>
+</body>
+</html>
